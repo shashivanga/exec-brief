@@ -1,1 +1,16 @@
 project_id = "pbfqdfipjnaqhoxhlitw"
+
+[functions.companies]
+verify_jwt = true
+
+[functions.topics] 
+verify_jwt = true
+
+[functions.feeds-autogenerate]
+verify_jwt = true
+
+[functions.fetch-rss]
+verify_jwt = false
+
+[functions.refresh-cards]
+verify_jwt = false
