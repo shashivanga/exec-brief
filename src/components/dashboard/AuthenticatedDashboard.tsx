@@ -98,6 +98,7 @@ export const AuthenticatedDashboard = () => {
           
           // Fallback: Direct database queries
           // Check if user has org membership
+          console.log('Checking org membership for user:', user.id);
           const { data: orgMemberships, error: memberError } = await supabase
             .from('org_members')
             .select(`
@@ -111,15 +112,31 @@ export const AuthenticatedDashboard = () => {
             `)
             .eq('user_id', user.id);
 
-          if (memberError || !orgMemberships || orgMemberships.length === 0) {
+          console.log('Org membership query result:', { orgMemberships, memberError });
+
+          if (memberError) {
+            console.error('Membership query error:', memberError);
+            throw new Error('Failed to check organization membership: ' + memberError.message);
+          }
+
+          if (!orgMemberships || orgMemberships.length === 0) {
             console.log('No organization found, needs onboarding');
             
             // If we just completed onboarding (localStorage flag exists), retry after a short delay
             const justCompleted = localStorage.getItem('decks-onboarding-completed');
-            if (justCompleted && retryCount < 3) {
-              console.log(`Retrying dashboard load (attempt ${retryCount + 1}) after onboarding...`);
-              setTimeout(() => loadDashboard(retryCount + 1), 1000 * (retryCount + 1));
-              return;
+            if (justCompleted) {
+              const completedTime = parseInt(justCompleted);
+              const timeSinceCompletion = Date.now() - completedTime;
+              
+              // Only retry if it's been less than 30 seconds since onboarding and we haven't exhausted retries
+              if (timeSinceCompletion < 30000 && retryCount < 5) {
+                console.log(`Retrying dashboard load (attempt ${retryCount + 1}) after onboarding... Time since completion: ${timeSinceCompletion}ms`);
+                setTimeout(() => loadDashboard(retryCount + 1), 2000);
+                return;
+              } else {
+                // Clear stale onboarding flag
+                localStorage.removeItem('decks-onboarding-completed');
+              }
             }
             
             setNeedsOnboarding(true);

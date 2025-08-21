@@ -71,6 +71,7 @@ export const OnboardingStart = () => {
         
         // Fallback: Direct database operations
         // 1. Create organization
+        console.log('Creating organization:', formData.orgName);
         const { data: org, error: orgError } = await supabase
           .from('organizations')
           .insert({
@@ -82,10 +83,36 @@ export const OnboardingStart = () => {
 
         if (orgError) {
           console.error('Organization creation error:', orgError);
-          throw new Error('Failed to create organization');
+          throw new Error('Failed to create organization: ' + orgError.message);
         }
 
-        // 2. Add user to org_members
+        console.log('Organization created:', org);
+
+        // 2. Create profile if it doesn't exist
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('user_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          console.log('Creating user profile');
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: user.id,
+              full_name: formData.name,
+              timezone: 'America/New_York'
+            });
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+            // Don't fail onboarding for profile creation
+          }
+        }
+
+        // 3. Add user to org_members
+        console.log('Adding user to organization:', { org_id: org.id, user_id: user.id });
         const { error: memberError } = await supabase
           .from('org_members')
           .insert({
@@ -96,8 +123,10 @@ export const OnboardingStart = () => {
 
         if (memberError) {
           console.error('Membership creation error:', memberError);
-          throw new Error('Failed to add user to organization');
+          throw new Error('Failed to add user to organization: ' + memberError.message);
         }
+
+        console.log('User added to organization successfully');
 
         // 3. Create default dashboard
         const { data: dashboard, error: dashboardError } = await supabase
@@ -209,16 +238,39 @@ export const OnboardingStart = () => {
 
         console.log(`Created organization and ${cards.length} cards via fallback`);
         
+        // Verify the organization was created and user is a member
+        const { data: verifyMembership, error: verifyError } = await supabase
+          .from('org_members')
+          .select(`
+            org_id,
+            organizations (
+              id,
+              name,
+              plan,
+              branding
+            )
+          `)
+          .eq('user_id', user.id);
+
+        if (verifyError || !verifyMembership || verifyMembership.length === 0) {
+          console.error('Verification failed:', verifyError);
+          throw new Error('Failed to verify organization setup');
+        }
+
+        console.log('Organization setup verified:', verifyMembership);
+        
         toast({
           title: "Welcome to Decks!",
           description: "Your organization and dashboard have been created successfully.",
         });
 
-        // Mark onboarding as completed
-        localStorage.setItem('decks-onboarding-completed', 'true');
+        // Mark onboarding as completed with timestamp
+        localStorage.setItem('decks-onboarding-completed', Date.now().toString());
         
-        // Navigate to dashboard
-        navigate('/', { replace: true });
+        // Small delay to ensure database consistency, then navigate
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 100);
       }
     } catch (err: any) {
       console.error('Onboarding error:', err);
