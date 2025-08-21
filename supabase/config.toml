@@ -1,5 +1,16 @@
 project_id = "pbfqdfipjnaqhoxhlitw"
 
+# Phase 1 - Onboarding & Dashboard Management
+[functions.onboarding-start]
+verify_jwt = true
+
+[functions.me-dashboard]
+verify_jwt = true
+
+[functions.cards-actions]
+verify_jwt = true
+
+# Phase 2 - Companies, Topics, Feeds
 [functions.companies]
 verify_jwt = true
 
@@ -15,6 +26,7 @@ verify_jwt = false
 [functions.refresh-cards]
 verify_jwt = false
 
+# Phase 3 & 4 - Documents & KPIs
 [functions.documents-sign-upload]
 verify_jwt = true
 
@@ -23,3 +35,11 @@ verify_jwt = true
 
 [functions.kpis-import-xlsx]
 verify_jwt = true
+
+# Phase 5 - Briefing API
+[functions.briefing-today]
+verify_jwt = true
+
+# Phase 6 - Enhanced Operations
+[functions.fetch-rss-enhanced]
+verify_jwt = false
