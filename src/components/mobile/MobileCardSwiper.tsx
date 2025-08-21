@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ProgressDots } from './ProgressDots';
+import { AIInsightMobileCard } from './cards/AIInsightMobileCard';
 import { BriefingCard } from './cards/BriefingCard';
 import { CompetitorCard } from './cards/CompetitorCard';
 import { IndustryCard } from './cards/IndustryCard';
@@ -26,6 +27,7 @@ export const MobileCardSwiper = ({
   const isDraggingRef = useRef<boolean>(false);
 
   const cards = [
+    { id: 'ai-summary', component: <AIInsightMobileCard /> },
     { id: 'briefing', component: <BriefingCard /> },
     { id: 'competitor', component: <CompetitorCard competitorName={competitorName} /> },
     { id: 'industry', component: <IndustryCard industryName={industryName} /> },

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { AIInsightCard } from "@/components/dashboard/AIInsightCard";
 import { FileUploadSection } from "@/components/upload/FileUploadSection";
 import { ExportButton } from "@/components/export/ExportButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -164,7 +165,11 @@ const Index = () => {
           </TabsList>
           
           <TabsContent value="dashboard" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* AI Summary Card - Always first */}
+              <AIInsightCard />
+              
+              {/* Regular Dashboard Cards */}
               {dashboardData.map((card, index) => (
                 <DashboardCard
                   key={index}

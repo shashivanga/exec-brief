@@ -190,7 +190,21 @@ export const generatePDF = async (options: PDFExportOptions) => {
   // Start generating PDF
   addPageHeader();
   
-  // Process dashboard cards
+  // Process dashboard cards (including AI Summary)
+  const allCards = [
+    // AI Summary Card
+    {
+      title: "AI Summary",
+      category: "briefing",
+      metrics: [
+        { label: "Key Insights", value: "3 insights", trend: undefined, change: undefined },
+        { label: "Risk Level", value: "Medium", trend: undefined, change: undefined }
+      ],
+      timestamp: "Generated 5 minutes ago"
+    },
+    ...dashboardData
+  ];
+
   const cardsPerPage = 4;
   const cardsPerRow = 2;
   const cardWidth = (contentWidth - 10) / 2; // 10mm gap between cards
@@ -199,7 +213,7 @@ export const generatePDF = async (options: PDFExportOptions) => {
   
   let cardsOnCurrentPage = 0;
   
-  dashboardData.forEach((card, index) => {
+  allCards.forEach((card, index) => {
     // Check if we need a new page (every 4 cards)
     if (cardsOnCurrentPage >= cardsPerPage) {
       addPageFooter();

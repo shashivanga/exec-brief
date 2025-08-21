@@ -80,20 +80,20 @@ export const ExportModal = ({ open, onOpenChange, dashboardData = [] }: ExportMo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-3">
           <DialogTitle className="flex items-center space-x-2">
             <FileText className="w-5 h-5" />
             <span>Export Dashboard</span>
           </DialogTitle>
           <DialogDescription>
-            Generate a professional PDF report of your dashboard insights for meetings and stakeholder updates.
+            Generate a professional PDF report of your dashboard insights.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Report Details */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="report-title">Report Title</Label>
               <Input
@@ -104,41 +104,41 @@ export const ExportModal = ({ open, onOpenChange, dashboardData = [] }: ExportMo
               />
             </div>
 
-            {/* Export Info */}
-            <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+            {/* Export Info - Compact */}
+            <div className="p-3 bg-muted/50 rounded-lg space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Export Date:</span>
+                  <Calendar className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">Date:</span>
                 </div>
-                <span className="font-medium">{date}</span>
+                <span className="font-medium text-xs">{date}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center space-x-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Export Time:</span>
+                  <Clock className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">Time:</span>
                 </div>
-                <span className="font-medium">{time}</span>
+                <span className="font-medium text-xs">{time}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Cards to Export:</span>
-                <Badge variant="outline">{dashboardData.length} cards</Badge>
+                <span className="text-muted-foreground">Cards:</span>
+                <Badge variant="outline" className="text-xs">{dashboardData.length + 1} cards</Badge>
               </div>
             </div>
           </div>
 
           <Separator />
 
-          {/* Company Branding Options */}
-          <div className="space-y-4">
+          {/* Company Branding Options - Compact */}
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <div className="flex items-center space-x-2">
                   <Building className="w-4 h-4" />
-                  <Label className="text-base font-medium">Company Branding</Label>
+                  <Label className="text-sm font-medium">Company Branding</Label>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Add your company logo and colors to the report
+                <p className="text-xs text-muted-foreground">
+                  Add your company name to the report
                 </p>
               </div>
               <Switch
@@ -148,24 +148,25 @@ export const ExportModal = ({ open, onOpenChange, dashboardData = [] }: ExportMo
             </div>
 
             {includeCompanyBranding && (
-              <div className="ml-6 space-y-3">
+              <div className="ml-6 space-y-2">
                 <div className="space-y-2">
-                  <Label htmlFor="company-name">Company Name</Label>
+                  <Label htmlFor="company-name" className="text-sm">Company Name</Label>
                   <Input
                     id="company-name"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="Enter your company name..."
+                    className="text-sm"
                   />
                 </div>
                 
-                <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Palette className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-primary">Brand Colors</span>
+                <div className="p-2 bg-primary/5 rounded border border-primary/10">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <Palette className="w-3 h-3 text-primary" />
+                    <span className="text-xs font-medium text-primary">Brand Colors</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    The report will use Decks' professional blue theme with your company name in the header.
+                    Report uses Decks' professional blue theme.
                   </p>
                 </div>
               </div>
@@ -174,21 +175,21 @@ export const ExportModal = ({ open, onOpenChange, dashboardData = [] }: ExportMo
 
           <Separator />
 
-          {/* Export Format */}
-          <div className="space-y-3">
-            <Label className="text-base font-medium">Export Format</Label>
-            <div className="p-4 border rounded-lg bg-card">
+          {/* Export Format - Compact */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Export Format</Label>
+            <div className="p-3 border rounded bg-card">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-red-100 dark:bg-red-950/50 rounded-lg flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-red-600" />
+                <div className="w-6 h-6 bg-red-100 dark:bg-red-950/50 rounded flex items-center justify-center">
+                  <FileText className="w-3 h-3 text-red-600" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium">PDF Report</div>
-                  <div className="text-sm text-muted-foreground">
-                    Professional layout • 3-4 cards per page • Optimized for printing
+                  <div className="font-medium text-sm">PDF Report</div>
+                  <div className="text-xs text-muted-foreground">
+                    Professional layout • 3-4 cards per page
                   </div>
                 </div>
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
                   Recommended
                 </Badge>
               </div>
@@ -196,30 +197,32 @@ export const ExportModal = ({ open, onOpenChange, dashboardData = [] }: ExportMo
           </div>
 
           {/* Export Button */}
-          <Button
-            onClick={handleExport}
-            disabled={isExporting || !reportTitle.trim()}
-            className="w-full"
-            size="lg"
-          >
-            {isExporting ? (
-              <>
-                <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
-                Generating Report...
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4 mr-2" />
-                Export as PDF
-              </>
-            )}
-          </Button>
+          <div className="pt-2">
+            <Button
+              onClick={handleExport}
+              disabled={isExporting || !reportTitle.trim()}
+              className="w-full"
+              size="lg"
+            >
+              {isExporting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
+                  Generating Report...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export as PDF
+                </>
+              )}
+            </Button>
 
-          {isExporting && (
-            <div className="text-xs text-center text-muted-foreground">
-              This may take a few moments depending on the number of cards...
-            </div>
-          )}
+            {isExporting && (
+              <div className="text-xs text-center text-muted-foreground mt-2">
+                This may take a few moments...
+              </div>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
