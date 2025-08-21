@@ -13,9 +13,13 @@ export const DashboardHeader = () => {
   const navigate = useNavigate();
 
   const handleRestartOnboarding = () => {
-    localStorage.removeItem('decks-onboarding-completed');
-    localStorage.removeItem('decks-onboarding');
-    navigate('/onboarding');
+    try {
+      localStorage.removeItem('decks-onboarding-completed');
+      localStorage.removeItem('decks-onboarding');
+      navigate('/onboarding', { replace: true });
+    } catch (error) {
+      console.error('Error restarting onboarding:', error);
+    }
   };
 
   return (

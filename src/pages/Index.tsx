@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { FileUploadSection } from "@/components/upload/FileUploadSection";
@@ -7,14 +7,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    // Check if onboarding is completed
-    const onboardingCompleted = localStorage.getItem('decks-onboarding-completed');
-    if (!onboardingCompleted) {
-      navigate('/onboarding');
-    }
-  }, [navigate]);
+    // Add a small delay to ensure Router context is fully initialized
+    const checkOnboarding = () => {
+      try {
+        const onboardingCompleted = localStorage.getItem('decks-onboarding-completed');
+        if (!onboardingCompleted) {
+          navigate('/onboarding', { replace: true });
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+      }
+    };
+
+    // Use setTimeout to ensure this runs after component mount
+    const timeoutId = setTimeout(checkOnboarding, 0);
+    return () => clearTimeout(timeoutId);
+  }, [navigate, location]);
 
   // Get onboarding data for personalization
   const getOnboardingData = () => {
