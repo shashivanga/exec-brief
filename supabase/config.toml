@@ -14,3 +14,12 @@ verify_jwt = false
 
 [functions.refresh-cards]
 verify_jwt = false
+
+[functions.documents-sign-upload]
+verify_jwt = true
+
+[functions.documents-parse]
+verify_jwt = true
+
+[functions.kpis-import-xlsx]
+verify_jwt = true
