@@ -65,7 +65,7 @@ export const AuthenticatedDashboard = () => {
   useEffect(() => {
     if (!user || !session) return;
 
-  const loadDashboard = async () => {
+    const loadDashboard = async (retryCount = 0) => {
       try {
         console.log('Loading dashboard for user:', user.id);
         
@@ -113,6 +113,15 @@ export const AuthenticatedDashboard = () => {
 
           if (memberError || !orgMemberships || orgMemberships.length === 0) {
             console.log('No organization found, needs onboarding');
+            
+            // If we just completed onboarding (localStorage flag exists), retry after a short delay
+            const justCompleted = localStorage.getItem('decks-onboarding-completed');
+            if (justCompleted && retryCount < 3) {
+              console.log(`Retrying dashboard load (attempt ${retryCount + 1}) after onboarding...`);
+              setTimeout(() => loadDashboard(retryCount + 1), 1000 * (retryCount + 1));
+              return;
+            }
+            
             setNeedsOnboarding(true);
             return;
           }
@@ -155,6 +164,9 @@ export const AuthenticatedDashboard = () => {
 
           console.log(`Loaded ${cards?.length || 0} cards via fallback`);
           
+          // Clear the onboarding completed flag since we successfully loaded the dashboard
+          localStorage.removeItem('decks-onboarding-completed');
+          
           setDashboardData({
             organization: orgMemberships[0].organizations,
             dashboard,
@@ -176,7 +188,14 @@ export const AuthenticatedDashboard = () => {
       }
     };
 
-    loadDashboard();
+    // Check if coming from onboarding and add slight delay
+    const justCompleted = localStorage.getItem('decks-onboarding-completed');
+    if (justCompleted) {
+      console.log('Just completed onboarding, waiting before loading dashboard...');
+      setTimeout(() => loadDashboard(), 500);
+    } else {
+      loadDashboard();
+    }
   }, [user, session, toast]);
 
   const handleStartOnboarding = () => {
