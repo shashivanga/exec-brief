@@ -272,6 +272,42 @@ export type Database = {
           },
         ]
       }
+      function_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          details: Json | null
+          errors_count: number | null
+          function_name: string
+          id: string
+          items_processed: number | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          details?: Json | null
+          errors_count?: number | null
+          function_name: string
+          id?: string
+          items_processed?: number | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          details?: Json | null
+          errors_count?: number | null
+          function_name?: string
+          id?: string
+          items_processed?: number | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       items: {
         Row: {
           company_id: string | null
