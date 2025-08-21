@@ -147,6 +147,35 @@ export type Database = {
           },
         ]
       }
+      document_texts: {
+        Row: {
+          created_at: string
+          document_id: string
+          page_count: number | null
+          text: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          page_count?: number | null
+          text?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          page_count?: number | null
+          text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_texts_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: true
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           file_name: string
