@@ -1,34 +1,195 @@
-import { useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-import { AuthenticatedDashboard } from '@/components/dashboard/AuthenticatedDashboard';
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { AIInsightCard } from "@/components/dashboard/AIInsightCard";
+import { FileUploadSection } from "@/components/upload/FileUploadSection";
+import { ExportButton } from "@/components/export/ExportButton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Smartphone } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
-  const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth', { replace: true });
+    // Add a small delay to ensure Router context is fully initialized
+    const checkOnboarding = () => {
+      try {
+        const onboardingCompleted = localStorage.getItem('decks-onboarding-completed');
+        if (!onboardingCompleted) {
+          navigate('/onboarding', { replace: true });
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+      }
+    };
+
+    // Use setTimeout to ensure this runs after component mount
+    const timeoutId = setTimeout(checkOnboarding, 0);
+    return () => clearTimeout(timeoutId);
+  }, [navigate, location]);
+
+  // Auto-redirect to mobile view on mobile devices
+  useEffect(() => {
+    if (isMobile && location.pathname === '/') {
+      navigate('/mobile', { replace: true });
     }
-  }, [user, loading, navigate]);
+  }, [isMobile, location.pathname, navigate]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-dashboard-bg flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+  // Get onboarding data for personalization
+  const getOnboardingData = () => {
+    try {
+      const data = localStorage.getItem('decks-onboarding');
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const onboardingData = getOnboardingData();
+
+  const getDashboardData = () => {
+    // Base dashboard data that gets personalized based on onboarding
+    const baseData = [
+      {
+        title: "Competitor Performance",
+        category: "competitor" as const,
+        metrics: [
+          { label: "Market Share", value: "23.4%", trend: "down" as const, change: "-2.1%" },
+          { label: "Revenue Growth", value: "-15.2%", trend: "down" as const, change: "Q3" }
+        ],
+        timestamp: "2 hours ago",
+        sourceUrl: "#"
+      },
+      {
+        title: "Industry Trends",
+        category: "industry" as const,
+        metrics: [
+          { label: "AI Adoption Rate", value: "68%", trend: "up" as const, change: "+12%" },
+          { label: "Market Growth", value: "$2.4B", trend: "up" as const, change: "+8.3%" }
+        ],
+        timestamp: "4 hours ago",
+        sourceUrl: "#"
+      },
+      {
+        title: "Company Health",
+        category: "company" as const,
+        metrics: [
+          { label: "Customer Churn", value: "4.2%", trend: "up" as const, change: "+0.8%" },
+          { label: "Monthly Revenue", value: "$1.2M", trend: "up" as const, change: "+5.4%" }
+        ],
+        timestamp: "1 hour ago",
+        sourceUrl: "#"
+      },
+      {
+        title: "Macro Economy",
+        category: "macro" as const,
+        metrics: [
+          { label: "Interest Rates", value: "5.25%", trend: "down" as const, change: "-0.25%" },
+          { label: "Tech Index", value: "4,287", trend: "up" as const, change: "+1.8%" }
+        ],
+        timestamp: "6 hours ago",
+        sourceUrl: "#"
+      }
+    ];
+
+    // Personalize based on onboarding data
+    if (onboardingData?.competitors?.length > 0) {
+      baseData[0].title = `${onboardingData.competitors[0]} Performance`;
+    }
+    
+    if (onboardingData?.industry) {
+      const industryLabels: Record<string, string> = {
+        technology: "Technology Sector",
+        healthcare: "Healthcare Industry", 
+        financial: "Financial Services",
+        manufacturing: "Manufacturing Sector",
+        retail: "Retail Market",
+        energy: "Energy Sector",
+        automotive: "Automotive Industry"
+      };
+      baseData[1].title = `${industryLabels[onboardingData.industry] || "Industry"} Trends`;
+    }
+
+    return baseData;
+  };
+
+  const dashboardData = getDashboardData();
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              Executive Dashboard
+              {onboardingData?.industry && (
+                <span className="text-lg text-muted-foreground ml-2 font-normal">
+                  • {onboardingData.industry.charAt(0).toUpperCase() + onboardingData.industry.slice(1)}
+                </span>
+              )}
+            </h1>
+            <p className="text-muted-foreground">
+              Your daily briefing • Updated every few hours with AI-powered insights
+              {onboardingData?.competitors?.length > 0 && (
+                <span className="ml-2">
+                  • Tracking {onboardingData.competitors.length} competitor{onboardingData.competitors.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </p>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={() => navigate('/mobile')}
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-2"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>Mobile View</span>
+            </Button>
+            
+            <ExportButton dashboardData={dashboardData} />
+          </div>
         </div>
+        
+        <Tabs defaultValue="dashboard" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="upload">Upload Documents</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="dashboard" className="mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* AI Summary Card - Always first */}
+              <AIInsightCard />
+              
+              {/* Regular Dashboard Cards */}
+              {dashboardData.map((card, index) => (
+                <DashboardCard
+                  key={index}
+                  title={card.title}
+                  category={card.category}
+                  metrics={card.metrics}
+                  timestamp={card.timestamp}
+                  sourceUrl={card.sourceUrl}
+                />
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="upload" className="mt-6">
+            <FileUploadSection />
+          </TabsContent>
+        </Tabs>
       </div>
-    );
-  }
-
-  if (!user) {
-    return null; // Will redirect to auth
-  }
-
-  return <AuthenticatedDashboard />;
+    </DashboardLayout>
+  );
 };
 
 export default Index;
