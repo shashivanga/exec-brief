@@ -4,10 +4,14 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { FileUploadSection } from "@/components/upload/FileUploadSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Smartphone } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Add a small delay to ensure Router context is fully initialized
@@ -26,6 +30,13 @@ const Index = () => {
     const timeoutId = setTimeout(checkOnboarding, 0);
     return () => clearTimeout(timeoutId);
   }, [navigate, location]);
+
+  // Auto-redirect to mobile view on mobile devices
+  useEffect(() => {
+    if (isMobile && location.pathname === '/') {
+      navigate('/mobile', { replace: true });
+    }
+  }, [isMobile, location.pathname, navigate]);
 
   // Get onboarding data for personalization
   const getOnboardingData = () => {
@@ -110,23 +121,35 @@ const Index = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            Executive Dashboard
-            {onboardingData?.industry && (
-              <span className="text-lg text-muted-foreground ml-2 font-normal">
-                • {onboardingData.industry.charAt(0).toUpperCase() + onboardingData.industry.slice(1)}
-              </span>
-            )}
-          </h1>
-          <p className="text-muted-foreground">
-            Your daily briefing • Updated every few hours with AI-powered insights
-            {onboardingData?.competitors?.length > 0 && (
-              <span className="ml-2">
-                • Tracking {onboardingData.competitors.length} competitor{onboardingData.competitors.length > 1 ? 's' : ''}
-              </span>
-            )}
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              Executive Dashboard
+              {onboardingData?.industry && (
+                <span className="text-lg text-muted-foreground ml-2 font-normal">
+                  • {onboardingData.industry.charAt(0).toUpperCase() + onboardingData.industry.slice(1)}
+                </span>
+              )}
+            </h1>
+            <p className="text-muted-foreground">
+              Your daily briefing • Updated every few hours with AI-powered insights
+              {onboardingData?.competitors?.length > 0 && (
+                <span className="ml-2">
+                  • Tracking {onboardingData.competitors.length} competitor{onboardingData.competitors.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </p>
+          </div>
+          
+          <Button
+            onClick={() => navigate('/mobile')}
+            variant="outline"
+            size="sm"
+            className="flex items-center space-x-2"
+          >
+            <Smartphone className="w-4 h-4" />
+            <span>Mobile View</span>
+          </Button>
         </div>
         
         <Tabs defaultValue="dashboard" className="w-full">
