@@ -506,6 +506,10 @@ export type Database = {
         Args: { _org_id: string }
         Returns: boolean
       }
+      prune_old_items: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
