@@ -1,8 +1,23 @@
-import { User, Bell } from "lucide-react";
+import { User, Bell, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 
 export const DashboardHeader = () => {
+  const navigate = useNavigate();
+
+  const handleRestartOnboarding = () => {
+    localStorage.removeItem('decks-onboarding-completed');
+    localStorage.removeItem('decks-onboarding');
+    navigate('/onboarding');
+  };
+
   return (
     <header className="bg-dashboard-sidebar border-b border-border px-6 py-4">
       <div className="flex items-center justify-between">
@@ -19,11 +34,27 @@ export const DashboardHeader = () => {
           <Button variant="ghost" size="sm" className="text-muted-foreground">
             <Bell className="w-4 h-4" />
           </Button>
-          <Avatar className="w-8 h-8">
-            <AvatarFallback className="bg-secondary text-secondary-foreground">
-              <User className="w-4 h-4" />
-            </AvatarFallback>
-          </Avatar>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-0">
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className="bg-secondary text-secondary-foreground">
+                    <User className="w-4 h-4" />
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-popover border border-border shadow-lg z-50">
+              <DropdownMenuItem 
+                onClick={handleRestartOnboarding}
+                className="cursor-pointer hover:bg-muted"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Update Preferences
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
