@@ -2,6 +2,8 @@ import { Calendar, FileText, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ExportModal } from "@/components/export/ExportModal";
+import { useState } from "react";
 
 interface BriefingItem {
   title: string;
@@ -62,6 +64,47 @@ const getTypeIcon = (type: string) => {
 };
 
 export const DashboardSidebar = () => {
+  const [showExportModal, setShowExportModal] = useState(false);
+
+  // Mock dashboard data for export
+  const dashboardData = [
+    {
+      title: "Competitor Performance",
+      category: "competitor",
+      metrics: [
+        { label: "Market Share", value: "23.4%", trend: "down" as const, change: "-2.1%" },
+        { label: "Revenue Growth", value: "-15.2%", trend: "down" as const, change: "Q3" }
+      ],
+      timestamp: "2 hours ago"
+    },
+    {
+      title: "Industry Trends", 
+      category: "industry",
+      metrics: [
+        { label: "AI Adoption Rate", value: "68%", trend: "up" as const, change: "+12%" },
+        { label: "Market Growth", value: "$2.4B", trend: "up" as const, change: "+8.3%" }
+      ],
+      timestamp: "4 hours ago"
+    },
+    {
+      title: "Company Health",
+      category: "company", 
+      metrics: [
+        { label: "Customer Churn", value: "4.2%", trend: "up" as const, change: "+0.8%" },
+        { label: "Monthly Revenue", value: "$1.2M", trend: "up" as const, change: "+5.4%" }
+      ],
+      timestamp: "1 hour ago"
+    },
+    {
+      title: "Macro Economy",
+      category: "macro",
+      metrics: [
+        { label: "Interest Rates", value: "5.25%", trend: "down" as const, change: "-0.25%" },
+        { label: "Tech Index", value: "4,287", trend: "up" as const, change: "+1.8%" }
+      ],
+      timestamp: "6 hours ago"
+    }
+  ];
   return (
     <aside className="w-80 bg-dashboard-sidebar border-l border-border p-6 overflow-y-auto">
       <div className="space-y-6">
@@ -126,6 +169,7 @@ export const DashboardSidebar = () => {
                 variant="secondary" 
                 size="sm" 
                 className="w-full mt-3 bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                onClick={() => setShowExportModal(true)}
               >
                 <FileText className="w-4 h-4 mr-2" />
                 Export as PDF
@@ -134,6 +178,13 @@ export const DashboardSidebar = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Export Modal */}
+      <ExportModal 
+        open={showExportModal}
+        onOpenChange={setShowExportModal}
+        dashboardData={dashboardData}
+      />
     </aside>
   );
 };

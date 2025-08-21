@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { FileUploadSection } from "@/components/upload/FileUploadSection";
+import { ExportButton } from "@/components/export/ExportButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Smartphone } from "lucide-react";
@@ -141,15 +142,19 @@ const Index = () => {
             </p>
           </div>
           
-          <Button
-            onClick={() => navigate('/mobile')}
-            variant="outline"
-            size="sm"
-            className="flex items-center space-x-2"
-          >
-            <Smartphone className="w-4 h-4" />
-            <span>Mobile View</span>
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={() => navigate('/mobile')}
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-2"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>Mobile View</span>
+            </Button>
+            
+            <ExportButton dashboardData={dashboardData} />
+          </div>
         </div>
         
         <Tabs defaultValue="dashboard" className="w-full">
