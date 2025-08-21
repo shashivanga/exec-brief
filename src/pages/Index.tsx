@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { FileUploadSection } from "@/components/upload/FileUploadSection";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -116,18 +118,31 @@ const Index = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {dashboardData.map((card, index) => (
-            <DashboardCard
-              key={index}
-              title={card.title}
-              category={card.category}
-              metrics={card.metrics}
-              timestamp={card.timestamp}
-              sourceUrl={card.sourceUrl}
-            />
-          ))}
-        </div>
+        <Tabs defaultValue="dashboard" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="upload">Upload Documents</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="dashboard" className="mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {dashboardData.map((card, index) => (
+                <DashboardCard
+                  key={index}
+                  title={card.title}
+                  category={card.category}
+                  metrics={card.metrics}
+                  timestamp={card.timestamp}
+                  sourceUrl={card.sourceUrl}
+                />
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="upload" className="mt-6">
+            <FileUploadSection />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
