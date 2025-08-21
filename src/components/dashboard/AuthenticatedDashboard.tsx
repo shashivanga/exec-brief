@@ -65,44 +65,112 @@ export const AuthenticatedDashboard = () => {
   useEffect(() => {
     if (!user || !session) return;
 
-    const loadDashboard = async () => {
+  const loadDashboard = async () => {
       try {
         console.log('Loading dashboard for user:', user.id);
         
-        const { data, error } = await supabase.functions.invoke('me-dashboard', {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
+        // Try edge function first, fallback to direct DB queries
+        try {
+          const { data, error } = await supabase.functions.invoke('me-dashboard', {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
 
-        if (error) {
-          console.error('Function error:', error);
-          throw error;
-        }
+          if (error) {
+            console.log('Edge function not available, using fallback...');
+            throw error;
+          }
 
-        if (data?.needsOnboarding) {
-          console.log('User needs onboarding');
-          setNeedsOnboarding(true);
-          return;
-        }
+          if (data?.needsOnboarding) {
+            console.log('User needs onboarding');
+            setNeedsOnboarding(true);
+            return;
+          }
 
-        if (data?.success) {
-          console.log('Dashboard loaded successfully:', data);
-          setDashboardData(data);
-        } else {
-          throw new Error(data?.error || 'Failed to load dashboard');
+          if (data?.success) {
+            console.log('Dashboard loaded successfully:', data);
+            setDashboardData(data);
+            return;
+          }
+        } catch (funcError) {
+          console.log('Using direct database fallback...');
+          
+          // Fallback: Direct database queries
+          // Check if user has org membership
+          const { data: orgMemberships, error: memberError } = await supabase
+            .from('org_members')
+            .select(`
+              org_id,
+              organizations (
+                id,
+                name,
+                plan,
+                branding
+              )
+            `)
+            .eq('user_id', user.id);
+
+          if (memberError || !orgMemberships || orgMemberships.length === 0) {
+            console.log('No organization found, needs onboarding');
+            setNeedsOnboarding(true);
+            return;
+          }
+
+          const orgId = orgMemberships[0].org_id;
+
+          // Get user's default dashboard
+          const { data: dashboard, error: dashboardError } = await supabase
+            .from('dashboards')
+            .select('*')
+            .eq('org_id', orgId)
+            .eq('owner_id', user.id)
+            .eq('is_default', true)
+            .maybeSingle();
+
+          if (dashboardError) {
+            console.error('Dashboard query error:', dashboardError);
+            throw new Error('Failed to get user dashboard');
+          }
+
+          if (!dashboard) {
+            console.log('No dashboard found, needs onboarding');
+            setNeedsOnboarding(true);
+            return;
+          }
+
+          // Get cards for the dashboard
+          const { data: cards, error: cardsError } = await supabase
+            .from('cards')
+            .select('*')
+            .eq('dashboard_id', dashboard.id)
+            .eq('hidden', false)
+            .order('pinned', { ascending: false })
+            .order('position', { ascending: true });
+
+          if (cardsError) {
+            console.error('Cards query error:', cardsError);
+            throw new Error('Failed to get dashboard cards');
+          }
+
+          console.log(`Loaded ${cards?.length || 0} cards via fallback`);
+          
+          setDashboardData({
+            organization: orgMemberships[0].organizations,
+            dashboard,
+            cards: (cards || []).map(card => ({
+              ...card,
+              sources: Array.isArray(card.sources) ? card.sources : []
+            }))
+          });
         }
       } catch (err: any) {
         console.error('Dashboard load error:', err);
-        if (err.message?.includes('No organization found')) {
-          setNeedsOnboarding(true);
-        } else {
-          toast({
-            title: "Error",
-            description: err.message || 'Failed to load dashboard',
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Error",
+          description: err.message || 'Failed to load dashboard',
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
