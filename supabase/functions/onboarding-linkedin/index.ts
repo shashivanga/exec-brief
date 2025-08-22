@@ -158,15 +158,15 @@ serve(async (req) => {
     // Update profile with LinkedIn context
     const { error: profileError } = await supabase
       .from('profiles')
-      .upsert({
-        user_id: user.id,
+      .update({
         linkedin_url: linkedinUrl,
         employer_name: context.employer.name,
         employer_ticker: context.employer.ticker,
         employer_domain: context.employer.domain,
         industry: context.industry,
         inferred: context
-      });
+      })
+      .eq('user_id', user.id);
 
     if (profileError) {
       console.error('Error updating profile:', profileError);
