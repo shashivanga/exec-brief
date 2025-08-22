@@ -8,7 +8,6 @@ import { useToast } from '@/hooks/use-toast'
 import { useNavigate } from 'react-router-dom'
 
 export function OnboardingPage() {
-  const [orgName, setOrgName] = useState('')
   const [fullName, setFullName] = useState('')
   const [loading, setLoading] = useState(false)
   const { session } = useAuth()
@@ -17,25 +16,16 @@ export function OnboardingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!orgName.trim()) {
-      toast({
-        title: "Error",
-        description: "Organization name is required",
-        variant: "destructive"
-      })
-      return
-    }
 
     setLoading(true)
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/onboarding-start`, {
+      const response = await fetch(`https://pbfqdfipjnaqhoxhlitw.supabase.co/functions/v1/onboarding-start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
-          orgName: orgName.trim(),
           fullName: fullName.trim() || undefined
         })
       })
@@ -48,13 +38,13 @@ export function OnboardingPage() {
 
       toast({
         title: "Welcome!",
-        description: `${orgName} has been set up successfully.`,
+        description: "Your dashboard has been set up successfully.",
       })
 
-      // Store org info in localStorage for quick access
+      // Store dashboard info in localStorage for quick access
       localStorage.setItem('current_org', JSON.stringify({
-        id: data.org.id,
-        name: data.org.name,
+        id: data.user.id,
+        name: 'Personal',
         dashboard_id: data.dashboard.id
       }))
 
@@ -63,7 +53,7 @@ export function OnboardingPage() {
       console.error('Onboarding error:', error)
       toast({
         title: "Onboarding Failed",
-        description: error instanceof Error ? error.message : "Failed to set up your organization",
+        description: error instanceof Error ? error.message : "Failed to set up your dashboard",
         variant: "destructive"
       })
     } finally {
@@ -77,22 +67,11 @@ export function OnboardingPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Welcome!</CardTitle>
           <CardDescription className="text-center">
-            Let's set up your organization to get started
+            Let's set up your personal dashboard to get started
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="orgName">Organization Name *</Label>
-              <Input
-                id="orgName"
-                type="text"
-                placeholder="Enter your organization name"
-                value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
-                required
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="fullName">Your Name (optional)</Label>
               <Input

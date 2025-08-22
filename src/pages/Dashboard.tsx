@@ -1,11 +1,23 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+
+interface DashboardCard {
+  id: string
+  title: string
+  type: string
+  data: any
+  position: number
+  pinned: boolean
+}
 
 export function DashboardPage() {
   const { session } = useAuth()
   const navigate = useNavigate()
-  const [hasOrg, setHasOrg] = useState<boolean | null>(null)
+  const [cards, setCards] = useState<DashboardCard[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Check if user has completed onboarding
@@ -16,10 +28,41 @@ export function DashboardPage() {
       return
     }
     
-    setHasOrg(true)
-  }, [navigate])
+    fetchCards()
+  }, [navigate, session])
 
-  if (hasOrg === null) {
+  const fetchCards = async () => {
+    if (!session?.access_token) return
+    
+    try {
+      const response = await fetch(`https://pbfqdfipjnaqhoxhlitw.supabase.co/functions/v1/me-dashboard`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCards(data.cards || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch cards:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getCategoryColor = (type: string) => {
+    switch (type) {
+      case 'competitor': return 'bg-red-100 text-red-800'
+      case 'industry': return 'bg-blue-100 text-blue-800'
+      case 'company_health': return 'bg-green-100 text-green-800'
+      case 'metrics': return 'bg-purple-100 text-purple-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -39,17 +82,36 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {cards.map((card) => (
+          <Card key={card.id} className="relative">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">{card.title}</CardTitle>
+                <Badge variant="secondary" className={getCategoryColor(card.type)}>
+                  {card.type.replace('_', ' ')}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {card.data?.placeholder ? (
+                <CardDescription>{card.data.message}</CardDescription>
+              ) : (
+                <CardDescription>No data available yet</CardDescription>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {cards.length === 0 && (
         <div className="text-center py-12 border-2 border-dashed border-muted rounded-lg">
-          <h3 className="text-lg font-medium mb-2">Dashboard Cards Coming Soon</h3>
+          <h3 className="text-lg font-medium mb-2">No Cards Found</h3>
           <p className="text-muted-foreground mb-4">
-            Your personalized cards will appear here once we implement the dashboard logic.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Next: We'll add card fetching and display functionality.
+            Your dashboard cards will appear here once they're created.
           </p>
         </div>
-      </div>
+      )}
     </div>
   )
 }

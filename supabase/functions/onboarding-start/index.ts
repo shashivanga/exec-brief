@@ -33,51 +33,11 @@ serve(async (req) => {
     }
 
     if (req.method === 'POST') {
-      const { orgName, fullName } = await req.json()
+      const { fullName } = await req.json()
 
-      if (!orgName) {
-        return new Response(
-          JSON.stringify({ error: 'Organization name is required' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      console.log(`Starting onboarding for user ${user.id} with org ${orgName}`)
+      console.log(`Starting onboarding for user ${user.id}`)
 
       try {
-        // Start transaction by creating organization
-        const { data: org, error: orgError } = await supabase
-          .from('organizations')
-          .insert({
-            name: orgName
-          })
-          .select()
-          .single()
-
-        if (orgError) {
-          console.error('Error creating organization:', orgError)
-          return new Response(
-            JSON.stringify({ error: 'Failed to create organization' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-
-        // Add user to organization
-        const { error: memberError } = await supabase
-          .from('org_members')
-          .insert({
-            org_id: org.id,
-            user_id: user.id
-          })
-
-        if (memberError) {
-          console.error('Error adding org member:', memberError)
-          return new Response(
-            JSON.stringify({ error: 'Failed to add user to organization' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-
         // Update user profile if fullName provided
         if (fullName) {
           await supabase
@@ -92,8 +52,7 @@ serve(async (req) => {
         const { data: dashboard, error: dashboardError } = await supabase
           .from('dashboards')
           .insert({
-            org_id: org.id,
-            owner_id: user.id,
+            user_id: user.id,
             name: 'Main',
             is_default: true
           })
@@ -111,7 +70,7 @@ serve(async (req) => {
         // Seed initial cards
         const seedCards = [
           {
-            org_id: org.id,
+            user_id: user.id,
             dashboard_id: dashboard.id,
             type: 'competitor',
             title: 'Competitor Updates',
@@ -123,7 +82,7 @@ serve(async (req) => {
             sources: []
           },
           {
-            org_id: org.id,
+            user_id: user.id,
             dashboard_id: dashboard.id,
             type: 'industry',
             title: 'Industry Trends',
@@ -135,7 +94,7 @@ serve(async (req) => {
             sources: []
           },
           {
-            org_id: org.id,
+            user_id: user.id,
             dashboard_id: dashboard.id,
             type: 'company_health',
             title: 'Company Health',
@@ -147,7 +106,7 @@ serve(async (req) => {
             sources: []
           },
           {
-            org_id: org.id,
+            user_id: user.id,
             dashboard_id: dashboard.id,
             type: 'metrics',
             title: 'Product Metrics',
@@ -177,7 +136,7 @@ serve(async (req) => {
 
         return new Response(
           JSON.stringify({ 
-            org,
+            user: { id: user.id },
             dashboard,
             cards
           }),

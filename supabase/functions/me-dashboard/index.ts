@@ -33,26 +33,11 @@ serve(async (req) => {
     }
 
     if (req.method === 'GET') {
-      // Get user's org membership
-      const { data: membership, error: memberError } = await supabase
-        .from('org_members')
-        .select('org_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (memberError || !membership) {
-        return new Response(
-          JSON.stringify({ error: 'User not in any organization' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
       // Get user's default dashboard
       const { data: dashboard, error: dashboardError } = await supabase
         .from('dashboards')
         .select('id')
-        .eq('org_id', membership.org_id)
-        .eq('owner_id', user.id)
+        .eq('user_id', user.id)
         .eq('is_default', true)
         .single()
 
@@ -67,7 +52,7 @@ serve(async (req) => {
       const { data: cards, error: cardsError } = await supabase
         .from('cards')
         .select('id, type, title, position, pinned, hidden, data, sources, refreshed_at, created_at')
-        .eq('org_id', membership.org_id)
+        .eq('user_id', user.id)
         .eq('dashboard_id', dashboard.id)
         .eq('hidden', false)
         .order('pinned', { ascending: false })
@@ -82,7 +67,7 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify(cards || []),
+        JSON.stringify({ cards: cards || [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
