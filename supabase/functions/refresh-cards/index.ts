@@ -70,6 +70,10 @@ serve(async (req) => {
                 .order('published_at', { ascending: false })
                 .limit(5)
 
+              // Create card regardless of whether there are items or not
+              let cardData
+              let sources = []
+
               if (items && items.length > 0) {
                 const headlines = items.map(item => ({
                   title: item.title,
@@ -77,42 +81,51 @@ serve(async (req) => {
                   ts: item.published_at
                 }))
 
-                const sources = items.map(item => ({
+                sources = items.map(item => ({
                   title: item.title,
                   url: item.url
                 }))
 
-                const cardData = {
+                cardData = {
                   competitor: company.name,
                   ticker: company.ticker || null,
                   headlines: headlines,
                   last_refreshed: new Date().toISOString()
                 }
-
-                // Upsert the card
-                const { error: cardError } = await supabase
-                  .from('cards')
-                  .upsert({
-                    user_id: userProfile.user_id,
-                    dashboard_id: dashboard.id,
-                    type: 'competitor',
-                    title: company.name,
-                    position: 0, // Will be updated by user
-                    data: cardData,
-                    sources: sources,
-                    refreshed_at: new Date().toISOString()
-                  }, {
-                    onConflict: 'user_id,dashboard_id,type,title',
-                    ignoreDuplicates: false
-                  })
-
-                if (cardError) {
-                  console.error(`Error upserting card for company ${company.id}:`, cardError)
-                  errors.push(`Company ${company.name}: ${cardError.message}`)
-                } else {
-                  totalCardsUpdated++
-                  console.log(`Updated card for company: ${company.name}`)
+              } else {
+                // Create placeholder card if no items yet
+                cardData = {
+                  competitor: company.name,
+                  ticker: company.ticker || null,
+                  message: `Set up RSS feeds for ${company.name} to see competitor updates`,
+                  placeholder: true,
+                  last_refreshed: new Date().toISOString()
                 }
+              }
+
+              // Upsert the card
+              const { error: cardError } = await supabase
+                .from('cards')
+                .upsert({
+                  user_id: userProfile.user_id,
+                  dashboard_id: dashboard.id,
+                  type: 'competitor',
+                  title: company.name,
+                  position: 0, // Will be updated by user
+                  data: cardData,
+                  sources: sources,
+                  refreshed_at: new Date().toISOString()
+                }, {
+                  onConflict: 'user_id,dashboard_id,type,title',
+                  ignoreDuplicates: false
+                })
+
+              if (cardError) {
+                console.error(`Error upserting card for company ${company.id}:`, cardError)
+                errors.push(`Company ${company.name}: ${cardError.message}`)
+              } else {
+                totalCardsUpdated++
+                console.log(`Updated card for company: ${company.name}`)
               }
             } catch (companyError) {
               console.error(`Error processing company ${company.id}:`, companyError)

@@ -124,7 +124,12 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent>
               {card.data?.placeholder ? (
-                <CardDescription>{card.data.message}</CardDescription>
+                <div className="space-y-3">
+                  <CardDescription>{card.data.message}</CardDescription>
+                  <div className="text-xs text-muted-foreground">
+                    Go to <a href="/tools" className="text-primary hover:underline font-medium">Tools</a> to generate RSS feeds and fetch data
+                  </div>
+                </div>
               ) : card.data?.headlines && card.data.headlines.length > 0 ? (
                 <div className="space-y-3">
                   {card.data.headlines
