@@ -67,27 +67,28 @@ serve(async (req) => {
       }
 
       // Filter cards to prioritize real cards over placeholder cards
-      const cardsByType = new Map()
+      const cardsByTypeAndTitle = new Map()
       const cards = []
 
-      // Group cards by type and prioritize non-placeholder cards
+      // Group cards by type AND title, prioritize non-placeholder cards
       for (const card of allCards || []) {
         const isPlaceholder = card.data?.placeholder === true
-        const existing = cardsByType.get(card.type)
+        const key = `${card.type}-${card.title}`
+        const existing = cardsByTypeAndTitle.get(key)
         
         if (!existing) {
-          cardsByType.set(card.type, card)
+          cardsByTypeAndTitle.set(key, card)
         } else {
           // Replace if current card is not a placeholder and existing is placeholder
           const existingIsPlaceholder = existing.data?.placeholder === true
           if (existingIsPlaceholder && !isPlaceholder) {
-            cardsByType.set(card.type, card)
+            cardsByTypeAndTitle.set(key, card)
           }
         }
       }
 
       // Convert map back to array
-      cards.push(...cardsByType.values())
+      cards.push(...cardsByTypeAndTitle.values())
 
       return new Response(
         JSON.stringify({ cards: cards || [] }),
