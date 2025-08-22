@@ -127,7 +127,12 @@ export function DashboardPage() {
                 <CardDescription>{card.data.message}</CardDescription>
               ) : card.data?.headlines && card.data.headlines.length > 0 ? (
                 <div className="space-y-3">
-                  {card.data.headlines.slice(0, 3).map((headline: any, index: number) => (
+                  {card.data.headlines
+                    .filter((headline: any, index: number, array: any[]) => 
+                      array.findIndex((h: any) => h.title === headline.title) === index
+                    )
+                    .slice(0, 3)
+                    .map((headline: any, index: number) => (
                     <div key={index} className="text-sm">
                       <a 
                         href={headline.url} 
