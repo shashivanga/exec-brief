@@ -65,13 +65,6 @@ export type Database = {
             referencedRelation: "dashboards"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "cards_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
         ]
       }
       companies: {
@@ -102,15 +95,7 @@ export type Database = {
           org_id?: string
           ticker?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "companies_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       dashboards: {
         Row: {
@@ -137,15 +122,7 @@ export type Database = {
           org_id?: string
           owner_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "dashboards_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       document_texts: {
         Row: {
@@ -207,15 +184,7 @@ export type Database = {
           uploaded_at?: string
           uploader_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "documents_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       feeds: {
         Row: {
@@ -254,13 +223,6 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "feeds_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -360,13 +322,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "items_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "items_topic_id_fkey"
             columns: ["topic_id"]
             isOneToOne: false
@@ -412,13 +367,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "kpi_points_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "kpi_points_source_document_id_fkey"
             columns: ["source_document_id"]
             isOneToOne: false
@@ -448,61 +396,6 @@ export type Database = {
           name?: string
           org_id?: string
           unit?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "kpis_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      org_members: {
-        Row: {
-          created_at: string
-          org_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          org_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          org_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "org_members_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      organizations: {
-        Row: {
-          branding: Json | null
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          branding?: Json | null
-          created_at?: string
-          id?: string
-          name: string
-        }
-        Update: {
-          branding?: Json | null
-          created_at?: string
-          id?: string
-          name?: string
         }
         Relationships: []
       }
@@ -552,25 +445,13 @@ export type Database = {
           org_id?: string
           queries?: string[]
         }
-        Relationships: [
-          {
-            foreignKeyName: "topics_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      is_org_member: {
-        Args: { _org_id: string }
-        Returns: boolean
-      }
       prune_old_items: {
         Args: Record<PropertyKey, never>
         Returns: undefined
