@@ -42,31 +42,16 @@ serve(async (req) => {
         )
       }
 
-      // Get user's org
-      const { data: membership, error: memberError } = await supabase
-        .from('org_members')
-        .select('org_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (memberError || !membership) {
-        return new Response(
-          JSON.stringify({ error: 'User not in any organization' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
       // Generate unique document ID and file path
       const documentId = crypto.randomUUID()
-      const storagePath = `uploads/${membership.org_id}/${documentId}.${ext}`
+      const storagePath = `uploads/${user.id}/${documentId}.${ext}`
 
       // Create document record
       const { data: document, error: insertError } = await supabase
         .from('documents')
         .insert({
           id: documentId,
-          org_id: membership.org_id,
-          uploader_id: user.id,
+          user_id: user.id,
           storage_path: storagePath,
           file_name: `document.${ext}`, // Will be updated later with actual filename
           kind: ext,

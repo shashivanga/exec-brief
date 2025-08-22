@@ -118,7 +118,7 @@ serve(async (req) => {
         .from('documents')
         .select('*')
         .eq('id', documentId)
-        .eq('uploader_id', user.id) // Ensure user owns the document
+        .eq('user_id', user.id) // Ensure user owns the document
         .single()
 
       if (docError || !document) {
@@ -199,7 +199,7 @@ serve(async (req) => {
         const { data: dashboard, error: dashboardError } = await supabase
           .from('dashboards')
           .select('id')
-          .eq('org_id', document.org_id)
+          .eq('user_id', user.id)
           .eq('is_default', true)
           .limit(1)
           .single()
@@ -219,7 +219,7 @@ serve(async (req) => {
           await supabase
             .from('cards')
             .upsert({
-              org_id: document.org_id,
+              user_id: user.id,
               dashboard_id: dashboard.id,
               type: 'company_health',
               title: 'Company Health',
@@ -228,7 +228,7 @@ serve(async (req) => {
               sources: sources,
               refreshed_at: new Date().toISOString()
             }, {
-              onConflict: 'org_id,dashboard_id,type,title',
+              onConflict: 'user_id,dashboard_id,type,title',
               ignoreDuplicates: false
             })
         }

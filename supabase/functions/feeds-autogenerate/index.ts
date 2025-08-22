@@ -42,20 +42,6 @@ serve(async (req) => {
         )
       }
 
-      // Get user's org
-      const { data: membership, error: memberError } = await supabase
-        .from('org_members')
-        .select('org_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (memberError || !membership) {
-        return new Response(
-          JSON.stringify({ error: 'User not in any organization' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
       let feedUrl = ''
       let feedData: any = {}
 
@@ -65,7 +51,7 @@ serve(async (req) => {
           .from('companies')
           .select('*')
           .eq('id', targetId)
-          .eq('org_id', membership.org_id)
+          .eq('user_id', user.id)
           .single()
 
         if (companyError || !company) {
@@ -91,7 +77,7 @@ serve(async (req) => {
         feedUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`
         
         feedData = {
-          org_id: membership.org_id,
+          user_id: user.id,
           kind: 'news',
           url: feedUrl,
           company_id: targetId,
@@ -105,7 +91,7 @@ serve(async (req) => {
           .from('topics')
           .select('*')
           .eq('id', targetId)
-          .eq('org_id', membership.org_id)
+          .eq('user_id', user.id)
           .single()
 
         if (topicError || !topic) {
@@ -120,7 +106,7 @@ serve(async (req) => {
         feedUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`
         
         feedData = {
-          org_id: membership.org_id,
+          user_id: user.id,
           kind: 'news',
           url: feedUrl,
           company_id: null,

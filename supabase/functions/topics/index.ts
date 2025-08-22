@@ -42,25 +42,11 @@ serve(async (req) => {
         )
       }
 
-      // Get user's org
-      const { data: membership, error: memberError } = await supabase
-        .from('org_members')
-        .select('org_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (memberError || !membership) {
-        return new Response(
-          JSON.stringify({ error: 'User not in any organization' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
       // Insert topic
       const { data: topic, error: insertError } = await supabase
         .from('topics')
         .insert({
-          org_id: membership.org_id,
+          user_id: user.id,
           name,
           queries
         })
@@ -82,24 +68,11 @@ serve(async (req) => {
     }
 
     if (req.method === 'GET') {
-      // Get user's org topics
-      const { data: membership, error: memberError } = await supabase
-        .from('org_members')
-        .select('org_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (memberError || !membership) {
-        return new Response(
-          JSON.stringify({ error: 'User not in any organization' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
+      // Get user's topics
       const { data: topics, error: fetchError } = await supabase
         .from('topics')
         .select('*')
-        .eq('org_id', membership.org_id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
       if (fetchError) {

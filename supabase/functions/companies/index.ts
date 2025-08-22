@@ -42,25 +42,11 @@ serve(async (req) => {
         )
       }
 
-      // Get user's org
-      const { data: membership, error: memberError } = await supabase
-        .from('org_members')
-        .select('org_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (memberError || !membership) {
-        return new Response(
-          JSON.stringify({ error: 'User not in any organization' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
       // Insert company
       const { data: company, error: insertError } = await supabase
         .from('companies')
         .insert({
-          org_id: membership.org_id,
+          user_id: user.id,
           name,
           ticker: ticker || null,
           domain: domain || null,
@@ -84,24 +70,11 @@ serve(async (req) => {
     }
 
     if (req.method === 'GET') {
-      // Get user's org companies
-      const { data: membership, error: memberError } = await supabase
-        .from('org_members')
-        .select('org_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (memberError || !membership) {
-        return new Response(
-          JSON.stringify({ error: 'User not in any organization' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
+      // Get user's companies
       const { data: companies, error: fetchError } = await supabase
         .from('companies')
         .select('*')
-        .eq('org_id', membership.org_id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
       if (fetchError) {

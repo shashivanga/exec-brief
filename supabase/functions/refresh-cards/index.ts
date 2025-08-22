@@ -23,40 +23,40 @@ serve(async (req) => {
     let totalCardsUpdated = 0
     const errors: string[] = []
 
-    // Get all organizations that have companies or topics
-    const { data: orgs, error: orgsError } = await supabase
-      .from('organizations')
-      .select('id')
+    // Get all users that have companies or topics
+    const { data: users, error: usersError } = await supabase
+      .from('profiles')
+      .select('user_id')
 
-    if (orgsError) {
-      console.error('Error fetching organizations:', orgsError)
+    if (usersError) {
+      console.error('Error fetching users:', usersError)
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch organizations' }),
+        JSON.stringify({ error: 'Failed to fetch users' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    for (const org of orgs) {
+    for (const userProfile of users) {
       try {
-        // Get default dashboard for this org (find any user's dashboard for now)
+        // Get default dashboard for this user
         const { data: dashboard } = await supabase
           .from('dashboards')
           .select('id')
-          .eq('org_id', org.id)
+          .eq('user_id', userProfile.user_id)
           .eq('is_default', true)
           .limit(1)
           .single()
 
         if (!dashboard) {
-          console.log(`No default dashboard found for org ${org.id}`)
+          console.log(`No default dashboard found for user ${userProfile.user_id}`)
           continue
         }
 
-        // Process companies for this org
+        // Process companies for this user
         const { data: companies } = await supabase
           .from('companies')
           .select('id, name, ticker')
-          .eq('org_id', org.id)
+          .eq('user_id', userProfile.user_id)
 
         if (companies) {
           for (const company of companies) {
@@ -65,7 +65,7 @@ serve(async (req) => {
               const { data: items } = await supabase
                 .from('items')
                 .select('title, url, published_at')
-                .eq('org_id', org.id)
+                .eq('user_id', userProfile.user_id)
                 .eq('company_id', company.id)
                 .order('published_at', { ascending: false })
                 .limit(5)
@@ -93,7 +93,7 @@ serve(async (req) => {
                 const { error: cardError } = await supabase
                   .from('cards')
                   .upsert({
-                    org_id: org.id,
+                    user_id: userProfile.user_id,
                     dashboard_id: dashboard.id,
                     type: 'competitor',
                     title: company.name,
@@ -102,7 +102,7 @@ serve(async (req) => {
                     sources: sources,
                     refreshed_at: new Date().toISOString()
                   }, {
-                    onConflict: 'org_id,dashboard_id,type,title',
+                    onConflict: 'user_id,dashboard_id,type,title',
                     ignoreDuplicates: false
                   })
 
@@ -121,11 +121,11 @@ serve(async (req) => {
           }
         }
 
-        // Process topics for this org
+        // Process topics for this user
         const { data: topics } = await supabase
           .from('topics')
           .select('id, name')
-          .eq('org_id', org.id)
+          .eq('user_id', userProfile.user_id)
 
         if (topics) {
           for (const topic of topics) {
@@ -134,7 +134,7 @@ serve(async (req) => {
               const { data: items } = await supabase
                 .from('items')
                 .select('title, url, published_at')
-                .eq('org_id', org.id)
+                .eq('user_id', userProfile.user_id)
                 .eq('topic_id', topic.id)
                 .order('published_at', { ascending: false })
                 .limit(5)
@@ -161,7 +161,7 @@ serve(async (req) => {
                 const { error: cardError } = await supabase
                   .from('cards')
                   .upsert({
-                    org_id: org.id,
+                    user_id: userProfile.user_id,
                     dashboard_id: dashboard.id,
                     type: 'industry',
                     title: topic.name,
@@ -170,7 +170,7 @@ serve(async (req) => {
                     sources: sources,
                     refreshed_at: new Date().toISOString()
                   }, {
-                    onConflict: 'org_id,dashboard_id,type,title',
+                    onConflict: 'user_id,dashboard_id,type,title',
                     ignoreDuplicates: false
                   })
 
@@ -189,9 +189,9 @@ serve(async (req) => {
           }
         }
 
-      } catch (orgError) {
-        console.error(`Error processing org ${org.id}:`, orgError)
-        errors.push(`Org ${org.id}: ${orgError.message}`)
+      } catch (userError) {
+        console.error(`Error processing user ${userProfile.user_id}:`, userError)
+        errors.push(`User ${userProfile.user_id}: ${userError.message}`)
       }
     }
 

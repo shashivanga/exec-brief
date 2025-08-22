@@ -149,7 +149,7 @@ serve(async (req) => {
             const { error: insertError } = await supabase
               .from('items')
               .upsert({
-                org_id: feed.org_id,
+                user_id: feed.user_id,
                 company_id: feed.company_id,
                 topic_id: feed.topic_id,
                 source_kind: feed.kind,
@@ -160,7 +160,7 @@ serve(async (req) => {
                 summary: summary,
                 raw: rssItem
               }, {
-                onConflict: 'org_id,company_id,topic_id,source_kind,source_id',
+                onConflict: 'user_id,company_id,topic_id,source_kind,source_id',
                 ignoreDuplicates: true
               })
 

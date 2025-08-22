@@ -118,7 +118,7 @@ serve(async (req) => {
         .from('documents')
         .select('*')
         .eq('id', documentId)
-        .eq('uploader_id', user.id)
+        .eq('user_id', user.id)
         .single()
 
       if (docError || !document) {
@@ -166,11 +166,11 @@ Revenue Per User,540,2024-09-30,$`
             const { data: kpi, error: kpiError } = await supabase
               .from('kpis')
               .upsert({
-                org_id: document.org_id,
+                user_id: user.id,
                 name: row.name,
                 unit: row.unit || '$'
               }, {
-                onConflict: 'org_id,name',
+                onConflict: 'user_id,name',
                 ignoreDuplicates: false
               })
               .select()
@@ -187,13 +187,13 @@ Revenue Per User,540,2024-09-30,$`
             const { error: pointError } = await supabase
               .from('kpi_points')
               .upsert({
-                org_id: document.org_id,
+                user_id: user.id,
                 kpi_id: kpi.id,
                 period: row.period,
                 value: row.value,
                 source_document_id: documentId
               }, {
-                onConflict: 'org_id,kpi_id,period',
+                onConflict: 'user_id,kpi_id,period',
                 ignoreDuplicates: false
               })
 
@@ -208,7 +208,7 @@ Revenue Per User,540,2024-09-30,$`
             const { data: previousPoint } = await supabase
               .from('kpi_points')
               .select('value')
-              .eq('org_id', document.org_id)
+              .eq('user_id', user.id)
               .eq('kpi_id', kpi.id)
               .lt('period', row.period)
               .order('period', { ascending: false })
@@ -241,7 +241,7 @@ Revenue Per User,540,2024-09-30,$`
         const { data: dashboard, error: dashboardError } = await supabase
           .from('dashboards')
           .select('id')
-          .eq('org_id', document.org_id)
+          .eq('user_id', user.id)
           .eq('is_default', true)
           .limit(1)
           .single()
@@ -261,7 +261,7 @@ Revenue Per User,540,2024-09-30,$`
           await supabase
             .from('cards')
             .upsert({
-              org_id: document.org_id,
+              user_id: user.id,
               dashboard_id: dashboard.id,
               type: 'metrics',
               title: 'Product Metrics',
@@ -270,7 +270,7 @@ Revenue Per User,540,2024-09-30,$`
               sources: sources,
               refreshed_at: new Date().toISOString()
             }, {
-              onConflict: 'org_id,dashboard_id,type,title',
+              onConflict: 'user_id,dashboard_id,type,title',
               ignoreDuplicates: false
             })
         }
