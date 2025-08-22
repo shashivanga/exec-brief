@@ -125,6 +125,29 @@ export function DashboardPage() {
             <CardContent>
               {card.data?.placeholder ? (
                 <CardDescription>{card.data.message}</CardDescription>
+              ) : card.data?.headlines && card.data.headlines.length > 0 ? (
+                <div className="space-y-3">
+                  {card.data.headlines.slice(0, 3).map((headline: any, index: number) => (
+                    <div key={index} className="text-sm">
+                      <a 
+                        href={headline.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline font-medium line-clamp-2"
+                      >
+                        {headline.title}
+                      </a>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {new Date(headline.ts).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                  {card.data.last_refreshed && (
+                    <div className="text-xs text-muted-foreground border-t pt-2 mt-3">
+                      Last updated: {new Date(card.data.last_refreshed).toLocaleString()}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <CardDescription>No data available yet</CardDescription>
               )}
