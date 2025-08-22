@@ -20,21 +20,16 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user has completed onboarding
-    const orgData = localStorage.getItem('current_org')
-    if (!orgData) {
-      // No org in localStorage, redirect to onboarding
-      navigate('/auth-onboarding')
-      return
+    if (session) {
+      initializeDashboard()
     }
-    
-    fetchCards()
-  }, [navigate, session])
+  }, [session])
 
-  const fetchCards = async () => {
+  const initializeDashboard = async () => {
     if (!session?.access_token) return
     
     try {
+      // Try to fetch existing cards first
       const response = await fetch(`https://pbfqdfipjnaqhoxhlitw.supabase.co/functions/v1/me-dashboard`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
@@ -44,11 +39,45 @@ export function DashboardPage() {
       if (response.ok) {
         const data = await response.json()
         setCards(data.cards || [])
+      } else if (response.status === 404) {
+        // No dashboard found, create one
+        await createDashboard()
       }
     } catch (error) {
-      console.error('Failed to fetch cards:', error)
+      console.error('Failed to initialize dashboard:', error)
+      // Try to create dashboard on error
+      await createDashboard()
     } finally {
       setLoading(false)
+    }
+  }
+
+  const createDashboard = async () => {
+    if (!session?.access_token) return
+    
+    try {
+      const response = await fetch(`https://pbfqdfipjnaqhoxhlitw.supabase.co/functions/v1/onboarding-start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({})
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCards(data.cards || [])
+        
+        // Store dashboard info in localStorage for quick access
+        localStorage.setItem('current_org', JSON.stringify({
+          id: data.user.id,
+          name: 'Personal',
+          dashboard_id: data.dashboard.id
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to create dashboard:', error)
     }
   }
 

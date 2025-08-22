@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { AuthPage } from '@/pages/Auth'
-import { OnboardingPage } from '@/pages/OnboardingPage'
 import { DashboardPage } from '@/pages/Dashboard'
 import { ToolsPage } from '@/pages/Tools'
 import { BriefingPage } from '@/pages/Briefing'
@@ -36,23 +35,20 @@ function AppRouter() {
   }
 
   return (
-    <Routes>
-      <Route path="/auth-onboarding" element={<OnboardingPage />} />
-      <Route path="/*" element={
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/dashboard" element={<Navigate to="/" replace />} />
-            <Route path="/briefing" element={<BriefingPage />} />
-            <Route path="/tools" element={<ToolsPage />} />
-            {/* Legacy routes */}
-            <Route path="/mobile" element={<Mobile />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </AppLayout>
-      } />
-    </Routes>
+    <AppLayout>
+      <Routes>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/briefing" element={<BriefingPage />} />
+        <Route path="/tools" element={<ToolsPage />} />
+        
+        {/* Legacy routes - redirect to dashboard */}
+        <Route path="/dashboard" element={<Navigate to="/" replace />} />
+        <Route path="/mobile" element={<Mobile />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AppLayout>
   )
 }
 
