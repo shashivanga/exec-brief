@@ -70,28 +70,37 @@ export type Database = {
       companies: {
         Row: {
           aliases: string[] | null
+          contact_url: string | null
           created_at: string
           domain: string | null
           id: string
           name: string
+          press_rss_url: string | null
+          summary: string | null
           ticker: string | null
           user_id: string
         }
         Insert: {
           aliases?: string[] | null
+          contact_url?: string | null
           created_at?: string
           domain?: string | null
           id?: string
           name: string
+          press_rss_url?: string | null
+          summary?: string | null
           ticker?: string | null
           user_id: string
         }
         Update: {
           aliases?: string[] | null
+          contact_url?: string | null
           created_at?: string
           domain?: string | null
           id?: string
           name?: string
+          press_rss_url?: string | null
+          summary?: string | null
           ticker?: string | null
           user_id?: string
         }
@@ -397,21 +406,39 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          employer_domain: string | null
+          employer_name: string | null
+          employer_ticker: string | null
           full_name: string | null
+          industry: string | null
+          inferred: Json | null
+          linkedin_url: string | null
           timezone: string | null
           user_id: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          employer_domain?: string | null
+          employer_name?: string | null
+          employer_ticker?: string | null
           full_name?: string | null
+          industry?: string | null
+          inferred?: Json | null
+          linkedin_url?: string | null
           timezone?: string | null
           user_id: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          employer_domain?: string | null
+          employer_name?: string | null
+          employer_ticker?: string | null
           full_name?: string | null
+          industry?: string | null
+          inferred?: Json | null
+          linkedin_url?: string | null
           timezone?: string | null
           user_id?: string
         }
