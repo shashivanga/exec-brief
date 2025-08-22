@@ -53,8 +53,7 @@ serve(async (req) => {
           .from('dashboards')
           .insert({
             user_id: user.id,
-            org_id: user.id, // Use user_id as org_id for personal dashboards
-            name: 'Main',
+            name: 'Personal Dashboard',
             is_default: true
           })
           .select()

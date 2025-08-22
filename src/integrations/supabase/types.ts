@@ -103,7 +103,6 @@ export type Database = {
           id: string
           is_default: boolean | null
           name: string
-          org_id: string
           user_id: string
         }
         Insert: {
@@ -111,7 +110,6 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           name?: string
-          org_id: string
           user_id: string
         }
         Update: {
@@ -119,7 +117,6 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           name?: string
-          org_id?: string
           user_id?: string
         }
         Relationships: []
