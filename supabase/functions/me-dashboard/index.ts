@@ -48,8 +48,8 @@ serve(async (req) => {
         )
       }
 
-      // Get visible cards ordered by pinned desc, position asc
-      const { data: cards, error: cardsError } = await supabase
+      // Get all visible cards
+      const { data: allCards, error: cardsError } = await supabase
         .from('cards')
         .select('id, type, title, position, pinned, hidden, data, sources, refreshed_at, created_at')
         .eq('user_id', user.id)
@@ -65,6 +65,29 @@ serve(async (req) => {
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
+
+      // Filter cards to prioritize real cards over placeholder cards
+      const cardsByType = new Map()
+      const cards = []
+
+      // Group cards by type and prioritize non-placeholder cards
+      for (const card of allCards || []) {
+        const isPlaceholder = card.data?.placeholder === true
+        const existing = cardsByType.get(card.type)
+        
+        if (!existing) {
+          cardsByType.set(card.type, card)
+        } else {
+          // Replace if current card is not a placeholder and existing is placeholder
+          const existingIsPlaceholder = existing.data?.placeholder === true
+          if (existingIsPlaceholder && !isPlaceholder) {
+            cardsByType.set(card.type, card)
+          }
+        }
+      }
+
+      // Convert map back to array
+      cards.push(...cardsByType.values())
 
       return new Response(
         JSON.stringify({ cards: cards || [] }),
