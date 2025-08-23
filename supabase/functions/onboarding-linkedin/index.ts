@@ -71,50 +71,46 @@ serve(async (req) => {
       );
     }
 
-    const { linkedinUrl } = await req.json();
+    const { linkedinUrl, manualCompany, manualIndustry } = await req.json();
     
-    if (!linkedinUrl) {
+    if (!linkedinUrl && !manualCompany) {
       return new Response(
-        JSON.stringify({ error: 'LinkedIn URL is required' }),
+        JSON.stringify({ error: 'LinkedIn URL or company name is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Processing LinkedIn URL for user ${user.id}: ${linkedinUrl}`);
+    console.log(`Processing for user ${user.id}: ${linkedinUrl ? `LinkedIn: ${linkedinUrl}` : `Manual: ${manualCompany}`}`);
 
-    // Use Puter.js to analyze the LinkedIn profile
-    const puterScript = `
-      <script src="https://js.puter.com/v2/"></script>
-      <script>
-        async function analyzeLinkedIn() {
-          try {
-            const response = await puter.ai.chat(
-              "Analyze this LinkedIn profile URL and extract business context. Return strict JSON only with these exact fields: {\\\"name\\\":\\\"\\\",\\\"employer\\\":{\\\"name\\\":\\\"\\\",\\\"ticker\\\":\\\"\\\",\\\"domain\\\":\\\"\\\"},\\\"role\\\":\\\"\\\",\\\"industry\\\":\\\"\\\",\\\"interests\\\":[],\\\"location\\\":\\\"\\\",\\\"confidence\\\":0-1}. Use only verifiable information from public data. If unknown, use empty string or empty array. LinkedIn URL: ${linkedinUrl}",
-              { model: "gpt-4.1-nano" }
-            );
-            return response;
-          } catch (error) {
-            console.error('Puter.js error:', error);
-            return null;
-          }
-        }
-        analyzeLinkedIn().then(result => {
-          console.log('Analysis result:', result);
-        });
-      </script>
-    `;
-
-    // Since we can't execute client-side JavaScript in Deno, we'll use a fallback approach
-    // Extract basic info from LinkedIn URL patterns and use AI for competitor suggestions
-    const linkedinUsername = linkedinUrl.match(/linkedin\.com\/in\/([^\/\?]+)/)?.[1] || '';
-    
-    // Use Puter.js-style AI call for competitor analysis
     let context;
-    try {
-      // For now, we'll use a simplified approach and focus on the competitor mapping
-      // In a full implementation, you'd need to fetch the LinkedIn page content first
+    
+    if (manualCompany) {
+      // Handle manual company entry
+      console.log(`Manual company entry: ${manualCompany} in ${manualIndustry || 'Business'}`);
       
-      // Extract potential company from URL or use AI to suggest
+      // Check if it matches known companies in PEER_SETS
+      const knownCompany = Object.keys(PEER_SETS).find(
+        company => company.toLowerCase() === manualCompany.toLowerCase()
+      );
+      
+      context = {
+        name: 'User',
+        employer: {
+          name: manualCompany,
+          ticker: knownCompany ? PEER_SETS[knownCompany]?.tickers?.[knownCompany] || '' : '',
+          domain: knownCompany ? PEER_SETS[knownCompany]?.domains?.[knownCompany] || '' : ''
+        },
+        role: 'Executive',
+        industry: manualIndustry || 'Business',
+        interests: [],
+        location: '',
+        confidence: knownCompany ? 0.8 : 0.5
+      };
+    } else {
+      // Handle LinkedIn URL analysis
+      const linkedinUsername = linkedinUrl.match(/linkedin\.com\/in\/([^\/\?]+)/)?.[1] || '';
+      
+      // Extract potential company from URL patterns
       const potentialCompany = linkedinUsername.includes('nike') ? 'Nike' : 
                               linkedinUsername.includes('apple') ? 'Apple' :
                               linkedinUsername.includes('microsoft') ? 'Microsoft' :
@@ -141,31 +137,24 @@ serve(async (req) => {
         location: '',
         confidence: potentialCompany ? 0.7 : 0.3
       };
-    } catch (error) {
-      console.error('Error analyzing LinkedIn profile:', error);
-      // Fallback context
-      context = {
-        name: 'User',
-        employer: { name: 'Unknown Company', ticker: '', domain: '' },
-        role: 'Executive',
-        industry: 'Business',
-        interests: [],
-        location: '',
-        confidence: 0.1
-      };
     }
 
-    // Update profile with LinkedIn context
+    // Update profile with context
+    const updateData: any = {
+      employer_name: context.employer.name,
+      employer_ticker: context.employer.ticker,
+      employer_domain: context.employer.domain,
+      industry: context.industry,
+      inferred: context
+    };
+    
+    if (linkedinUrl) {
+      updateData.linkedin_url = linkedinUrl;
+    }
+    
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({
-        linkedin_url: linkedinUrl,
-        employer_name: context.employer.name,
-        employer_ticker: context.employer.ticker,
-        employer_domain: context.employer.domain,
-        industry: context.industry,
-        inferred: context
-      })
+      .update(updateData)
       .eq('user_id', user.id);
 
     if (profileError) {

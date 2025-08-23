@@ -54,7 +54,7 @@ serve(async (req) => {
       );
     }
 
-    // Get user profile with LinkedIn context
+    // Get user profile with context
     const { data: profile } = await supabase
       .from('profiles')
       .select('employer_name, employer_ticker, industry, inferred')
@@ -69,15 +69,20 @@ serve(async (req) => {
 
     const employerCompany = companies?.find(c => c.name === profile?.employer_name);
     const competitors = companies?.filter(c => c.name !== profile?.employer_name) || [];
+    
+    // Fallback values if profile data is missing
+    const companyName = profile?.employer_name || 'Your Company';
+    const industryName = profile?.industry || 'Business';
+    const companyTicker = profile?.employer_ticker || '';
 
     // Define smart cards to create
     const smartCards = [
       {
         type: 'company_financials',
-        title: `${profile?.employer_name || 'Company'} Financials`,
+        title: `${companyName} Financials`,
         data: {
-          company: profile?.employer_name || 'Company',
-          ticker: profile?.employer_ticker || '',
+          company: companyName,
+          ticker: companyTicker,
           as_of: new Date().toISOString(),
           metrics: [
             { name: 'Revenue (TTM)', value: 'Loading...' },
@@ -93,11 +98,11 @@ serve(async (req) => {
         type: 'peer_financials',
         title: 'Peer Comparison',
         data: {
-          group: `${profile?.industry || 'Industry'} Peers`,
+          group: `${industryName} Peers`,
           rows: [
             { 
-              company: profile?.employer_name || 'Company', 
-              ticker: profile?.employer_ticker || '', 
+              company: companyName, 
+              ticker: companyTicker, 
               rev: 'Loading...', 
               margin: 'Loading...', 
               yoy: 'Loading...' 
@@ -116,9 +121,9 @@ serve(async (req) => {
       },
       {
         type: 'company_news',
-        title: `${profile?.employer_name || 'Company'} News`,
+        title: `${companyName} News`,
         data: {
-          company: profile?.employer_name || 'Company',
+          company: companyName,
           headlines: [],
           flags: { risks: [], opportunities: [] },
           last_refreshed: new Date().toISOString(),
@@ -139,9 +144,9 @@ serve(async (req) => {
       },
       {
         type: 'industry_pulse',
-        title: `${profile?.industry || 'Industry'} Pulse`,
+        title: `${industryName} Pulse`,
         data: {
-          topic: profile?.industry || 'Industry',
+          topic: industryName,
           headlines: [],
           last_refreshed: new Date().toISOString(),
           placeholder: true

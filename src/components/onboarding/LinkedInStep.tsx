@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, ExternalLink, CheckCircle } from "lucide-react";
+import { Loader2, ExternalLink, CheckCircle, Building } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -16,6 +16,9 @@ export const LinkedInStep = ({ linkedinUrl, onLinkedInChange, onContextAnalyzed 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [manualCompany, setManualCompany] = useState("");
+  const [manualIndustry, setManualIndustry] = useState("");
 
   const handleAnalyze = async () => {
     if (!linkedinUrl.trim()) {
@@ -55,9 +58,52 @@ export const LinkedInStep = ({ linkedinUrl, onLinkedInChange, onContextAnalyzed 
       });
     } catch (error) {
       console.error('Analysis error:', error);
+      setShowManualEntry(true);
       toast({
-        title: "Analysis Failed",
-        description: "We'll help you set up manually instead",
+        title: "Let's try a different approach",
+        description: "Please enter your company details manually",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleManualSubmit = async () => {
+    if (!manualCompany.trim()) {
+      toast({
+        title: "Company Required",
+        description: "Please enter your company name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('onboarding-linkedin', {
+        body: { 
+          linkedinUrl: linkedinUrl || null,
+          manualCompany: manualCompany.trim(),
+          manualIndustry: manualIndustry.trim() || 'Business'
+        }
+      });
+
+      if (error) throw error;
+
+      setAnalysisResult(data);
+      setAnalysisComplete(true);
+      onContextAnalyzed(data.context);
+      
+      toast({
+        title: "Setup Complete!",
+        description: `Dashboard configured for ${data.context.employer.name}`,
+      });
+    } catch (error) {
+      console.error('Manual setup error:', error);
+      toast({
+        title: "Setup Failed",
+        description: "Please try again or contact support",
         variant: "destructive"
       });
     } finally {
@@ -135,10 +181,66 @@ export const LinkedInStep = ({ linkedinUrl, onLinkedInChange, onContextAnalyzed 
               </CardContent>
             </Card>
           )}
+
+          {showManualEntry && !analysisComplete && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Let's set up your dashboard manually instead
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label htmlFor="company" className="text-sm font-medium">
+                    Your Company *
+                  </label>
+                  <Input
+                    id="company"
+                    placeholder="e.g., Apple, Microsoft, Tesla"
+                    value={manualCompany}
+                    onChange={(e) => setManualCompany(e.target.value)}
+                    disabled={isAnalyzing}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="industry" className="text-sm font-medium">
+                    Industry (Optional)
+                  </label>
+                  <Input
+                    id="industry"
+                    placeholder="e.g., Technology, Automotive, Healthcare"
+                    value={manualIndustry}
+                    onChange={(e) => setManualIndustry(e.target.value)}
+                    disabled={isAnalyzing}
+                  />
+                </div>
+                
+                <Button 
+                  onClick={handleManualSubmit}
+                  disabled={isAnalyzing || !manualCompany.trim()}
+                  className="w-full"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Setting up Dashboard...
+                    </>
+                  ) : (
+                    <>
+                      <Building className="w-4 h-4 mr-2" />
+                      Continue with Manual Setup
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {!analysisComplete && (
+      {!analysisComplete && !showManualEntry && (
         <Card>
           <CardContent className="pt-4">
             <p className="text-sm text-muted-foreground">
